@@ -36,6 +36,7 @@ const MatrixBackground = ({ isDark }: { isDark: boolean }) => {
     const columns = canvas.width / fontSize;
     const drops: number[] = [];
 
+    // Ensure canvas resizes correctly at the start
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -74,7 +75,7 @@ const MatrixBackground = ({ isDark }: { isDark: boolean }) => {
       clearInterval(interval);
       window.removeEventListener('resize', handleResize);
     };
-  }, [isDark]);
+  }, [isDark]); // Re-run the effect when the theme changes
 
   return (
     <canvas
@@ -83,6 +84,7 @@ const MatrixBackground = ({ isDark }: { isDark: boolean }) => {
     />
   );
 };
+
 
 
 // Improved Mouse Tracker Component with better control
