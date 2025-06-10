@@ -17,10 +17,11 @@ import {
   Calendar,
   Briefcase
 } from 'lucide-react';
-
-// Matrix Background Component - ONLY shows in dark mode
+// Matrix Background Component - Fixed for deployment
 const MatrixBackground = ({ isDark }: { isDark: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
+  const dropsRef = useRef<number[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -31,56 +32,73 @@ const MatrixBackground = ({ isDark }: { isDark: boolean }) => {
 
     const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
     const matrixArray = matrix.split("");
-
     const fontSize = 10;
-    const columns = canvas.width / fontSize;
-    const drops: number[] = [];
 
-    // Ensure canvas resizes correctly at the start
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1;
-    }
-
-    const draw = () => {
-      ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = isDark ? '#0F4' : '#00AA88';
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
+    const initializeCanvas = () => {
+      // Set canvas size
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      // Recalculate columns and reset drops
+      const columns = Math.floor(canvas.width / fontSize);
+      dropsRef.current = [];
+      
+      for (let x = 0; x < columns; x++) {
+        dropsRef.current[x] = Math.floor(Math.random() * canvas.height / fontSize);
       }
     };
 
-    const interval = setInterval(draw, 35);
+    const draw = () => {
+      // Clear canvas with fade effect
+      ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Set text properties
+      ctx.fillStyle = isDark ? '#0F4' : '#00AA88';
+      ctx.font = fontSize + 'px monospace';
+
+      // Draw matrix characters
+      for (let i = 0; i < dropsRef.current.length; i++) {
+        const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+        ctx.fillText(text, i * fontSize, dropsRef.current[i] * fontSize);
+
+        // Reset drop if it reaches bottom
+        if (dropsRef.current[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          dropsRef.current[i] = 0;
+        }
+        dropsRef.current[i]++;
+      }
+
+      animationRef.current = requestAnimationFrame(draw);
+    };
 
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      initializeCanvas();
     };
 
+    // Initialize canvas on mount and theme change
+    initializeCanvas();
+    
+    // Start animation
+    draw();
+
+    // Add resize listener
     window.addEventListener('resize', handleResize);
 
+    // Cleanup function
     return () => {
-      clearInterval(interval);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
       window.removeEventListener('resize', handleResize);
     };
-  }, [isDark]); // Re-run the effect when the theme changes
+  }, [isDark]);
 
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none opacity-20 z-0"
+      style={{ width: '100vw', height: '100vh' }}
     />
   );
 };
