@@ -555,7 +555,7 @@ function App() {
       </div>
     </div>
 
-    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 ">
       R.a.mohan <span className="text-blue-400">Tiwari</span>
     </h1>
 
